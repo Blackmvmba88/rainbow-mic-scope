@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rainbow Mic Scope v1.4</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="scope"></canvas>
+
+    <main class="panel" aria-label="Controles del osciloscopio">
+      <section class="brand">
+        <div>
+          <h1>Rainbow Mic Scope</h1>
+          <p>v1.4 WebUI</p>
+        </div>
+        <button id="startBtn" class="primary" type="button">Start Mic</button>
+      </section>
+
+      <section class="segmented" aria-label="Modo visual">
+        <button class="mode active" type="button" data-mode="line">Line</button>
+        <button class="mode" type="button" data-mode="circle">Circle</button>
+        <button class="mode" type="button" data-mode="portal">Portal</button>
+      </section>
+
+      <section class="grid">
+        <label>
+          Theme
+          <select id="theme">
+            <option value="rainbow">Rainbow</option>
+            <option value="plasma">Plasma</option>
+            <option value="aurora">Aurora</option>
+            <option value="ghost">Ghost</option>
+            <option value="mono">Mono</option>
+          </select>
+        </label>
+
+        <label>
+          Sensitivity
+          <input id="targetRms" type="range" min="0.03" max="0.4" value="0.12" step="0.01" />
+        </label>
+
+        <label>
+          Render
+          <input id="renderPoints" type="range" min="240" max="1440" value="720" step="24" />
+        </label>
+
+        <label>
+          FPS
+          <input id="fps" type="range" min="15" max="60" value="30" step="1" />
+        </label>
+
+        <label>
+          Trail
+          <input id="trailDepth" type="range" min="0" max="32" value="18" step="1" />
+        </label>
+
+        <label>
+          Fade
+          <input id="trailFade" type="range" min="600" max="5000" value="2600" step="100" />
+        </label>
+
+        <label>
+          Expand
+          <input id="trailExpand" type="range" min="0" max="0.7" value="0.28" step="0.01" />
+        </label>
+
+        <label>
+          Width
+          <input id="lineScale" type="range" min="0.35" max="3" value="1" step="0.05" />
+        </label>
+      </section>
+
+      <section class="toggles">
+        <button id="twinBtn" class="toggle active" type="button">Twin</button>
+        <button id="trailBtn" class="toggle active" type="button">Trail</button>
+        <button id="hudBtn" class="toggle active" type="button">HUD</button>
+      </section>
+    </main>
+
+    <aside id="hud" class="hud" aria-live="polite">
+      <span id="modeReadout">MODE LINE</span>
+      <span id="rmsReadout">RMS 0.0000</span>
+      <span id="gainReadout">PID 1.00x</span>
+      <span id="fpsReadout">FPS 0</span>
+    </aside>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
