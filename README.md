@@ -70,11 +70,15 @@ python3 -m venv .venv
 
 - `Line`, `Circle`, `Portal`: visual modes.
 - `Theme`: rainbow, plasma, aurora, ghost, mono.
+- `Audio Input`: select the correct microphone/input device exposed by the browser.
+- `Color Source`: switch between frequency-driven color and position rainbow.
 - `Sensitivity`: PID target RMS.
 - `Render`: visual bake points.
 - `FPS`: browser render limit.
 - `Trail`, `Fade`, `Expand`: echo behavior.
 - `Twin`, `Trail`, `HUD`: live toggles.
+
+Frequency color uses FFT analysis of the selected input. The HUD shows `PEAK Hz` so you can confirm the signal is being detected.
 
 ## Python Keyboard Controls
 

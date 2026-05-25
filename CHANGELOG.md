@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.5.0 - Frequency Color Branch
+
+- Adds WebUI audio input selection for available browser `audioinput` devices.
+- Adds frequency-driven coloring from FFT peak and spectral centroid.
+- Adds `Color Source` control to compare frequency-driven color vs position rainbow.
+- Adds `PEAK Hz` readout to the HUD.
+
 ## v1.4.1 - Phone Access
 
 - Adds Docker and Docker Compose for local LAN hosting.

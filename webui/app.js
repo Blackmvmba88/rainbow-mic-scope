@@ -1,4 +1,4 @@
-const VERSION = "1.4.0-webui";
+const VERSION = "1.5.0-webui";
 
 const THEMES = {
   rainbow: { bg: "#05060a", hue: 0, sat: 100, light: 55 },
@@ -20,6 +20,8 @@ const state = {
   integral: 0,
   previousError: 0,
   rms: 0,
+  peakHz: 0,
+  centroidHz: 0,
   fps: 30,
   measuredFps: 0,
   renderPoints: 720,
@@ -31,11 +33,15 @@ const state = {
   trail: true,
   hud: true,
   hueShift: 0,
+  colorSource: "frequency",
+  selectedDeviceId: "",
 };
 
 let audioContext;
 let analyser;
 let timeData;
+let frequencyData;
+let activeStream;
 let running = false;
 let lastFrame = 0;
 let fpsLast = performance.now();
@@ -65,6 +71,46 @@ function updatePid(measured, dt) {
   state.gain = state.gain * 0.88 + targetGain * 0.12;
 }
 
+function analyzeFrequency() {
+  if (!analyser || !frequencyData || !audioContext) return;
+
+  analyser.getByteFrequencyData(frequencyData);
+
+  const nyquist = audioContext.sampleRate / 2;
+  const minHz = 55;
+  const maxHz = Math.min(6000, nyquist);
+  const minBin = Math.max(1, Math.floor((minHz / nyquist) * frequencyData.length));
+  const maxBin = Math.min(frequencyData.length - 1, Math.ceil((maxHz / nyquist) * frequencyData.length));
+  let peakBin = minBin;
+  let peakValue = 0;
+  let weighted = 0;
+  let total = 0;
+
+  for (let bin = minBin; bin <= maxBin; bin += 1) {
+    const value = frequencyData[bin];
+    const hz = (bin / frequencyData.length) * nyquist;
+    if (value > peakValue) {
+      peakValue = value;
+      peakBin = bin;
+    }
+    weighted += hz * value;
+    total += value;
+  }
+
+  const peakHz = (peakBin / frequencyData.length) * nyquist;
+  const centroidHz = total > 0 ? weighted / total : 0;
+  state.peakHz = state.peakHz * 0.78 + peakHz * 0.22;
+  state.centroidHz = state.centroidHz * 0.82 + centroidHz * 0.18;
+}
+
+function hueFromFrequency() {
+  const hz = Math.max(55, state.centroidHz || state.peakHz || 55);
+  const minHz = 55;
+  const maxHz = 4200;
+  const normalized = clamp(Math.log2(hz / minHz) / Math.log2(maxHz / minHz), 0, 1);
+  return (250 - normalized * 250 + state.hueShift * 0.25 + state.peakHz * 0.015 + 360) % 360;
+}
+
 function readAudio() {
   const points = state.renderPoints;
   const signal = new Float32Array(points);
@@ -72,6 +118,7 @@ function readAudio() {
   if (!analyser) return signal;
 
   analyser.getFloatTimeDomainData(timeData);
+  analyzeFrequency();
   let mean = 0;
   for (let i = 0; i < timeData.length; i += 1) mean += timeData[i];
   mean /= timeData.length;
@@ -95,7 +142,11 @@ function readAudio() {
 
 function colorAt(index, count, alpha = 1) {
   const theme = THEMES[state.theme];
-  const hue = state.theme === "mono" ? 0 : (theme.hue + state.hueShift + (index / count) * 360) % 360;
+  let hue = theme.hue + state.hueShift + (index / count) * 360;
+  if (state.colorSource === "frequency") {
+    hue = hueFromFrequency() + (index / count) * 92;
+  }
+  hue = state.theme === "mono" ? 0 : hue % 360;
   return `hsla(${hue}, ${theme.sat}%, ${theme.light}%, ${alpha})`;
 }
 
@@ -210,25 +261,61 @@ function draw(now) {
   document.getElementById("modeReadout").textContent = `MODE ${state.mode.toUpperCase()}`;
   document.getElementById("rmsReadout").textContent = `RMS ${state.rms.toFixed(4)}`;
   document.getElementById("gainReadout").textContent = `PID ${state.gain.toFixed(2)}x`;
+  document.getElementById("freqReadout").textContent = `PEAK ${Math.round(state.peakHz)} Hz`;
   document.getElementById("fpsReadout").textContent = `FPS ${state.measuredFps}`;
 }
 
 async function startMic() {
+  if (activeStream) {
+    activeStream.getTracks().forEach((track) => track.stop());
+  }
+
+  const audioConstraints = {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+  };
+  if (state.selectedDeviceId) {
+    audioConstraints.deviceId = { exact: state.selectedDeviceId };
+  }
+
   const stream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-    },
+    audio: audioConstraints,
   });
-  audioContext = new AudioContext();
+  activeStream = stream;
+  audioContext = audioContext || new AudioContext();
+  if (audioContext.state === "suspended") await audioContext.resume();
   analyser = audioContext.createAnalyser();
   analyser.fftSize = 8192;
+  analyser.smoothingTimeConstant = 0.72;
   timeData = new Float32Array(analyser.fftSize);
+  frequencyData = new Uint8Array(analyser.frequencyBinCount);
   audioContext.createMediaStreamSource(stream).connect(analyser);
   running = true;
   document.getElementById("startBtn").textContent = "Mic Live";
   document.getElementById("startBtn").classList.add("active");
+  await refreshAudioInputs();
+}
+
+async function refreshAudioInputs() {
+  if (!navigator.mediaDevices?.enumerateDevices) return;
+
+  const select = document.getElementById("audioInput");
+  const current = select.value || state.selectedDeviceId;
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const inputs = devices.filter((device) => device.kind === "audioinput");
+
+  select.innerHTML = '<option value="">Default microphone</option>';
+  inputs.forEach((device, index) => {
+    const option = document.createElement("option");
+    option.value = device.deviceId;
+    option.textContent = device.label || `Audio input ${index + 1}`;
+    select.appendChild(option);
+  });
+
+  if ([...select.options].some((option) => option.value === current)) {
+    select.value = current;
+  }
 }
 
 function bindControls() {
@@ -250,6 +337,20 @@ function bindControls() {
   document.getElementById("theme").addEventListener("input", (event) => {
     state.theme = event.target.value;
     document.body.style.background = THEMES[state.theme].bg;
+  });
+
+  document.getElementById("colorSource").addEventListener("input", (event) => {
+    state.colorSource = event.target.value;
+    trailHistory = [];
+  });
+
+  document.getElementById("audioInput").addEventListener("input", (event) => {
+    state.selectedDeviceId = event.target.value;
+    if (running) startMic().catch(console.error);
+  });
+
+  document.getElementById("refreshDevicesBtn").addEventListener("click", () => {
+    refreshAudioInputs().catch(console.error);
   });
 
   const ranges = {
@@ -295,6 +396,7 @@ function bindControls() {
 
 resize();
 bindControls();
+refreshAudioInputs().catch(console.error);
 requestAnimationFrame(draw);
 window.addEventListener("resize", resize);
 console.info(`Rainbow Mic Scope ${VERSION}`);

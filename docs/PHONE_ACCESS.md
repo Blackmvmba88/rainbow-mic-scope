@@ -12,6 +12,8 @@ https://blackmvmba88.github.io/rainbow-mic-scope/
 
 Tap `Start Mic` and allow microphone access.
 
+Use `Audio Input` to choose the correct browser audio input. Device names may appear only after the first microphone permission grant.
+
 ## Local Docker
 
 Docker is useful for testing the WebUI from another device on the same Wi-Fi.

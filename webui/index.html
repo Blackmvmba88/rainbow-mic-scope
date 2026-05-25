@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rainbow Mic Scope v1.4</title>
+    <title>Rainbow Mic Scope v1.5</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
       <section class="brand">
         <div>
           <h1>Rainbow Mic Scope</h1>
-          <p>v1.4 WebUI</p>
+          <p>v1.5 WebUI</p>
         </div>
         <button id="startBtn" class="primary" type="button">Start Mic</button>
       </section>
@@ -25,6 +25,21 @@
       </section>
 
       <section class="grid">
+        <label>
+          Audio Input
+          <select id="audioInput">
+            <option value="">Default microphone</option>
+          </select>
+        </label>
+
+        <label>
+          Color Source
+          <select id="colorSource">
+            <option value="frequency">Frequency</option>
+            <option value="position">Position</option>
+          </select>
+        </label>
+
         <label>
           Theme
           <select id="theme">
@@ -73,6 +88,7 @@
       </section>
 
       <section class="toggles">
+        <button id="refreshDevicesBtn" class="toggle" type="button">Ports</button>
         <button id="twinBtn" class="toggle active" type="button">Twin</button>
         <button id="trailBtn" class="toggle active" type="button">Trail</button>
         <button id="hudBtn" class="toggle active" type="button">HUD</button>
@@ -83,6 +99,7 @@
       <span id="modeReadout">MODE LINE</span>
       <span id="rmsReadout">RMS 0.0000</span>
       <span id="gainReadout">PID 1.00x</span>
+      <span id="freqReadout">PEAK 0 Hz</span>
       <span id="fpsReadout">FPS 0</span>
     </aside>
 
