@@ -449,6 +449,122 @@ function savePreset() {
   refreshPresetSelect();
 }
 
+function doctorRow(check) {
+  return `
+    <div class="doctor-row">
+      <div class="doctor-status ${check.status}">${check.status.toUpperCase()}</div>
+      <div>
+        <div class="doctor-title">${check.title}</div>
+        <div class="doctor-detail">${check.detail}</div>
+      </div>
+    </div>
+  `;
+}
+
+async function getMicrophonePermissionState() {
+  try {
+    if (!navigator.permissions?.query) return "unknown";
+    const permission = await navigator.permissions.query({ name: "microphone" });
+    return permission.state;
+  } catch {
+    return "unknown";
+  }
+}
+
+async function runDoctor() {
+  const results = document.getElementById("doctorResults");
+  results.innerHTML = '<div class="doctor-detail">Running checks...</div>';
+
+  let storageOk = false;
+  try {
+    localStorage.setItem("rainbowMicScope.doctor", "ok");
+    storageOk = localStorage.getItem("rainbowMicScope.doctor") === "ok";
+    localStorage.removeItem("rainbowMicScope.doctor");
+  } catch {
+    storageOk = false;
+  }
+
+  let inputCount = 0;
+  let inputLabels = false;
+  try {
+    const devices = await navigator.mediaDevices?.enumerateDevices?.();
+    const inputs = (devices || []).filter((device) => device.kind === "audioinput");
+    inputCount = inputs.length;
+    inputLabels = inputs.some((device) => device.label);
+  } catch {
+    inputCount = 0;
+  }
+
+  const permissionState = await getMicrophonePermissionState();
+  const recorderMime = typeof MediaRecorder === "undefined" ? "" : getRecorderMimeType();
+  const checks = [
+    {
+      status: window.isSecureContext || location.hostname === "localhost" ? "ok" : "fail",
+      title: "Secure context",
+      detail: `Current origin is ${location.origin}. Microphone APIs need HTTPS or localhost.`,
+    },
+    {
+      status: navigator.mediaDevices?.getUserMedia ? "ok" : "fail",
+      title: "Microphone API",
+      detail: navigator.mediaDevices?.getUserMedia
+        ? "getUserMedia is available."
+        : "This browser does not expose getUserMedia.",
+    },
+    {
+      status: permissionState === "granted" ? "ok" : permissionState === "denied" ? "fail" : "warn",
+      title: "Microphone permission",
+      detail: `Permission state: ${permissionState}. Click Start Mic if labels or live input are missing.`,
+    },
+    {
+      status: inputCount > 0 ? "ok" : "warn",
+      title: "Audio inputs",
+      detail: `${inputCount} input device(s) visible. ${inputLabels ? "Device labels are available." : "Labels may appear after permission."}`,
+    },
+    {
+      status: typeof canvas.toBlob === "function" ? "ok" : "fail",
+      title: "PNG export",
+      detail: typeof canvas.toBlob === "function" ? "canvas.toBlob is available." : "canvas.toBlob is missing.",
+    },
+    {
+      status: canvas.captureStream && window.MediaRecorder && recorderMime ? "ok" : "warn",
+      title: "WebM recorder",
+      detail: recorderMime
+        ? `MediaRecorder ready with ${recorderMime}.`
+        : "MediaRecorder or a supported WebM codec is missing in this browser.",
+    },
+    {
+      status: document.documentElement.requestFullscreen ? "ok" : "warn",
+      title: "Fullscreen",
+      detail: document.documentElement.requestFullscreen
+        ? "Fullscreen API is available."
+        : "Fullscreen API is unavailable or restricted.",
+    },
+    {
+      status: storageOk ? "ok" : "fail",
+      title: "Preset storage",
+      detail: storageOk ? "localStorage works for saved presets." : "localStorage is blocked or unavailable.",
+    },
+  ];
+
+  results.innerHTML = checks.map(doctorRow).join("");
+}
+
+function openDoctor() {
+  const dialog = document.getElementById("doctorDialog");
+  runDoctor().catch((error) => {
+    document.getElementById("doctorResults").innerHTML = doctorRow({
+      status: "fail",
+      title: "Doctor crashed",
+      detail: error?.message || String(error),
+    });
+  });
+  if (dialog.showModal) {
+    dialog.showModal();
+  } else {
+    alert("Runtime Doctor is not supported in this browser.");
+  }
+}
+
 async function startMic() {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: {
@@ -490,6 +606,8 @@ function bindControls() {
 
   document.getElementById("exportPngBtn").addEventListener("click", exportPng);
   document.getElementById("recordBtn").addEventListener("click", toggleRecording);
+  document.getElementById("doctorBtn").addEventListener("click", openDoctor);
+  document.getElementById("rerunDoctorBtn").addEventListener("click", () => runDoctor().catch(console.error));
   document.getElementById("fullscreenBtn").addEventListener("click", () => {
     toggleFullscreen().catch(console.error);
   });
@@ -540,6 +658,7 @@ function bindControls() {
       trailHistory = [];
     }
     if (event.key === "h") document.getElementById("hudBtn").click();
+    if (event.key === "d") openDoctor();
     if (event.key === "Escape" && state.clean) toggleCleanMode();
   });
 }

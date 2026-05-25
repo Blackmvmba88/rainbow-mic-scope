@@ -74,6 +74,7 @@ python3 -m venv .venv
 - `Clean`: hide controls and HUD for capture/recording.
 - `PNG`: export the current canvas frame.
 - `REC`: record the canvas to WebM.
+- `Doctor`: run browser, microphone, export, recorder and preset checks.
 - `Save`: save the current settings as a browser preset.
 - `Preset`: load built-in or saved presets.
 - `Sensitivity`: PID target RMS.

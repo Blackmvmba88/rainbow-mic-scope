@@ -158,6 +158,86 @@ input[type="range"] {
   display: none;
 }
 
+.doctor {
+  width: min(680px, calc(100vw - 28px));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0;
+  background: rgba(5, 8, 15, 0.94);
+  color: var(--text);
+  backdrop-filter: blur(18px);
+}
+
+.doctor::backdrop {
+  background: rgba(0, 0, 0, 0.66);
+}
+
+.doctor-card {
+  padding: 16px;
+}
+
+.doctor-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.doctor h2 {
+  margin: 0;
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.doctor-results {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.doctor-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.doctor-status {
+  font-weight: 700;
+}
+
+.doctor-status.ok {
+  color: #22c55e;
+}
+
+.doctor-status.warn {
+  color: #facc15;
+}
+
+.doctor-status.fail {
+  color: #fb7185;
+}
+
+.doctor-title {
+  color: var(--text);
+}
+
+.doctor-detail {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.doctor-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+
 @media (max-width: 720px) {
   .panel {
     left: 10px;

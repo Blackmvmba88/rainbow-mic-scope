@@ -7,6 +7,7 @@
 - Adds fullscreen and clean presentation modes.
 - Adds built-in presets and saved presets in `localStorage`.
 - Adds preset loading from the WebUI.
+- Adds Runtime Doctor for browser, microphone, export, recorder and preset checks.
 
 ## v1.4.1 - Phone Access
 

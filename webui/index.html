@@ -83,6 +83,7 @@
         <button id="cleanBtn" type="button">Clean</button>
         <button id="exportPngBtn" type="button">PNG</button>
         <button id="recordBtn" type="button">REC</button>
+        <button id="doctorBtn" type="button">Doctor</button>
         <button id="savePresetBtn" type="button">Save</button>
         <select id="presetSelect" aria-label="Saved presets">
           <option value="">Preset</option>
@@ -97,6 +98,22 @@
       <span id="recordReadout">REC OFF</span>
       <span id="fpsReadout">FPS 0</span>
     </aside>
+
+    <dialog id="doctorDialog" class="doctor">
+      <form method="dialog" class="doctor-card">
+        <header class="doctor-head">
+          <div>
+            <h2>Runtime Doctor</h2>
+            <p>Browser, mic, export and recorder checks.</p>
+          </div>
+          <button type="submit" aria-label="Close doctor">Close</button>
+        </header>
+        <div id="doctorResults" class="doctor-results"></div>
+        <footer class="doctor-actions">
+          <button id="rerunDoctorBtn" type="button">Run Again</button>
+        </footer>
+      </form>
+    </dialog>
 
     <script src="./app.js"></script>
   </body>
