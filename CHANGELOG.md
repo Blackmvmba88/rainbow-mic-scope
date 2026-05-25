@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.4.1 - Phone Access
+
+- Adds Docker and Docker Compose for local LAN hosting.
+- Adds GitHub Pages static branch deployment path for HTTPS phone access.
+- Adds phone-access documentation with LAN and Pages URLs.
+
 ## v1.4.0 - WebUI
 
 - Agrega `webui/` con Canvas + Web Audio API.

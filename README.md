@@ -27,6 +27,28 @@ http://localhost:4173
 
 Click `Start Mic` and allow microphone access.
 
+## Phone Access
+
+Best phone path:
+
+```text
+https://blackmvmba88.github.io/rainbow-mic-scope/
+```
+
+Local Docker path:
+
+```bash
+docker compose up --build
+```
+
+Then open from a device on the same Wi-Fi:
+
+```text
+http://192.168.101.100:4173
+```
+
+For details, see [docs/PHONE_ACCESS.md](docs/PHONE_ACCESS.md).
+
 ## Run The Python Visualizer
 
 ```bash

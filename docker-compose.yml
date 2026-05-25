@@ -1,0 +1,6 @@
+services:
+  rainbow-mic-scope:
+    build: .
+    ports:
+      - "4173:8080"
+    restart: unless-stopped
