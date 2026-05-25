@@ -1,0 +1,63 @@
+{
+  "name": "rainbow-mic-scope",
+  "version": "1.5.0",
+  "description": "Live microphone oscilloscope with rainbow WebUI, portal mode, exports, recorder and desktop packaging.",
+  "main": "desktop/main.cjs",
+  "author": "BlackMamba Records",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "validate:web": "node --check webui/app.js",
+    "desktop:dev": "electron .",
+    "desktop:pack": "electron-builder --dir",
+    "dist:mac": "electron-builder --mac dmg",
+    "dist:win": "electron-builder --win nsis",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.blackmamba.rainbowmicscope",
+    "productName": "Rainbow Mic Scope",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "desktop/**/*",
+      "webui/**/*",
+      "README.md",
+      "LICENSE"
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.music",
+      "hardenedRuntime": false,
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Rainbow Mic Scope uses the microphone to render live audio-reactive visuals.",
+        "NSCameraUsageDescription": "Rainbow Mic Scope does not use the camera yet.",
+        "NSHighResolutionCapable": true
+      }
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^37.0.0",
+    "electron-builder": "^26.0.12"
+  }
+}

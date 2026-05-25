@@ -100,3 +100,13 @@ python3 -m venv .venv
 ## Release
 
 See [docs/RELEASE_NOTES_v1.4.0.md](docs/RELEASE_NOTES_v1.4.0.md).
+
+## Desktop App
+
+```bash
+npm install
+npm run desktop:dev
+npm run dist:mac
+```
+
+See [desktop packaging](docs/DESKTOP_PACKAGING.md).
