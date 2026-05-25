@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rainbow Mic Scope v1.4</title>
+    <title>Rainbow Mic Scope v1.5</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
@@ -13,7 +13,7 @@
       <section class="brand">
         <div>
           <h1>Rainbow Mic Scope</h1>
-          <p>v1.4 WebUI</p>
+          <p>v1.5 Output Engine</p>
         </div>
         <button id="startBtn" class="primary" type="button">Start Mic</button>
       </section>
@@ -77,12 +77,24 @@
         <button id="trailBtn" class="toggle active" type="button">Trail</button>
         <button id="hudBtn" class="toggle active" type="button">HUD</button>
       </section>
+
+      <section class="actions" aria-label="Export and preset controls">
+        <button id="fullscreenBtn" type="button">Fullscreen</button>
+        <button id="cleanBtn" type="button">Clean</button>
+        <button id="exportPngBtn" type="button">PNG</button>
+        <button id="recordBtn" type="button">REC</button>
+        <button id="savePresetBtn" type="button">Save</button>
+        <select id="presetSelect" aria-label="Saved presets">
+          <option value="">Preset</option>
+        </select>
+      </section>
     </main>
 
     <aside id="hud" class="hud" aria-live="polite">
       <span id="modeReadout">MODE LINE</span>
       <span id="rmsReadout">RMS 0.0000</span>
       <span id="gainReadout">PID 1.00x</span>
+      <span id="recordReadout">REC OFF</span>
       <span id="fpsReadout">FPS 0</span>
     </aside>
 

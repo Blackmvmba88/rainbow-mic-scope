@@ -70,6 +70,12 @@ python3 -m venv .venv
 
 - `Line`, `Circle`, `Portal`: visual modes.
 - `Theme`: rainbow, plasma, aurora, ghost, mono.
+- `Fullscreen`: enter browser fullscreen.
+- `Clean`: hide controls and HUD for capture/recording.
+- `PNG`: export the current canvas frame.
+- `REC`: record the canvas to WebM.
+- `Save`: save the current settings as a browser preset.
+- `Preset`: load built-in or saved presets.
 - `Sensitivity`: PID target RMS.
 - `Render`: visual bake points.
 - `FPS`: browser render limit.

@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.5.0 - Output Engine Branch
+
+- Adds PNG export from the live canvas.
+- Adds WebM recording with `canvas.captureStream` and `MediaRecorder`.
+- Adds fullscreen and clean presentation modes.
+- Adds built-in presets and saved presets in `localStorage`.
+- Adds preset loading from the WebUI.
+
 ## v1.4.1 - Phone Access
 
 - Adds Docker and Docker Compose for local LAN hosting.

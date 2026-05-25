@@ -1,4 +1,5 @@
-const VERSION = "1.4.0-webui";
+const VERSION = "1.5.0-webui";
+const PRESET_STORAGE_KEY = "rainbowMicScope.presets";
 
 const THEMES = {
   rainbow: { bg: "#05060a", hue: 0, sat: 100, light: 55 },
@@ -30,6 +31,9 @@ const state = {
   twin: true,
   trail: true,
   hud: true,
+  clean: false,
+  recording: false,
+  recordStartedAt: 0,
   hueShift: 0,
 };
 
@@ -41,6 +45,8 @@ let lastFrame = 0;
 let fpsLast = performance.now();
 let fpsFrames = 0;
 let trailHistory = [];
+let mediaRecorder;
+let recordedChunks = [];
 
 function resize() {
   const dpr = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
@@ -51,6 +57,166 @@ function resize() {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function timestamp() {
+  return new Date().toISOString().replace(/[:.]/g, "-");
+}
+
+function fileStem(extension) {
+  return `rainbow-mic-scope-${state.mode}-${state.theme}-${timestamp()}.${extension}`;
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1200);
+}
+
+function snapshotPreset(name = "Untitled Preset") {
+  return {
+    schema: 1,
+    name,
+    mode: state.mode,
+    theme: state.theme,
+    targetRms: state.targetRms,
+    fps: state.fps,
+    renderPoints: state.renderPoints,
+    trailDepth: state.trailDepth,
+    trailFadeMs: state.trailFadeMs,
+    trailExpand: state.trailExpand,
+    lineScale: state.lineScale,
+    twin: state.twin,
+    trail: state.trail,
+    hud: state.hud,
+  };
+}
+
+function getBuiltInPresets() {
+  return [
+    {
+      schema: 1,
+      name: "Portal Rainbow",
+      mode: "portal",
+      theme: "rainbow",
+      targetRms: 0.12,
+      fps: 30,
+      renderPoints: 720,
+      trailDepth: 18,
+      trailFadeMs: 2600,
+      trailExpand: 0.28,
+      lineScale: 1,
+      twin: true,
+      trail: true,
+      hud: true,
+    },
+    {
+      schema: 1,
+      name: "Aurora Clean",
+      mode: "portal",
+      theme: "aurora",
+      targetRms: 0.1,
+      fps: 30,
+      renderPoints: 960,
+      trailDepth: 22,
+      trailFadeMs: 3400,
+      trailExpand: 0.36,
+      lineScale: 1.15,
+      twin: true,
+      trail: true,
+      hud: false,
+    },
+    {
+      schema: 1,
+      name: "Line Scope",
+      mode: "line",
+      theme: "ghost",
+      targetRms: 0.12,
+      fps: 30,
+      renderPoints: 720,
+      trailDepth: 10,
+      trailFadeMs: 1700,
+      trailExpand: 0.08,
+      lineScale: 0.85,
+      twin: true,
+      trail: true,
+      hud: true,
+    },
+  ];
+}
+
+function getSavedPresets() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PRESET_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function setSavedPresets(presets) {
+  localStorage.setItem(PRESET_STORAGE_KEY, JSON.stringify(presets));
+}
+
+function applyPreset(preset) {
+  if (!preset || preset.schema !== 1) return;
+
+  const keys = [
+    "mode",
+    "theme",
+    "targetRms",
+    "fps",
+    "renderPoints",
+    "trailDepth",
+    "trailFadeMs",
+    "trailExpand",
+    "lineScale",
+    "twin",
+    "trail",
+    "hud",
+  ];
+  keys.forEach((key) => {
+    if (Object.prototype.hasOwnProperty.call(preset, key)) state[key] = preset[key];
+  });
+  trailHistory = [];
+  syncControls();
+}
+
+function refreshPresetSelect() {
+  const select = document.getElementById("presetSelect");
+  const presets = [...getBuiltInPresets(), ...getSavedPresets()];
+  select.innerHTML = '<option value="">Preset</option>';
+  presets.forEach((preset, index) => {
+    const option = document.createElement("option");
+    option.value = String(index);
+    option.textContent = preset.name;
+    select.appendChild(option);
+  });
+}
+
+function syncControls() {
+  document.querySelectorAll(".mode").forEach((button) => {
+    button.classList.toggle("active", button.dataset.mode === state.mode);
+  });
+  document.getElementById("theme").value = state.theme;
+  document.getElementById("targetRms").value = state.targetRms;
+  document.getElementById("renderPoints").value = state.renderPoints;
+  document.getElementById("fps").value = state.fps;
+  document.getElementById("trailDepth").value = state.trailDepth;
+  document.getElementById("trailFade").value = state.trailFadeMs;
+  document.getElementById("trailExpand").value = state.trailExpand;
+  document.getElementById("lineScale").value = state.lineScale;
+  document.getElementById("twinBtn").classList.toggle("active", state.twin);
+  document.getElementById("trailBtn").classList.toggle("active", state.trail);
+  document.getElementById("hudBtn").classList.toggle("active", state.hud);
+  hud.classList.toggle("hidden", !state.hud);
+  document.body.classList.toggle("clean", state.clean);
+  document.body.style.background = THEMES[state.theme].bg;
 }
 
 function updatePid(measured, dt) {
@@ -210,7 +376,77 @@ function draw(now) {
   document.getElementById("modeReadout").textContent = `MODE ${state.mode.toUpperCase()}`;
   document.getElementById("rmsReadout").textContent = `RMS ${state.rms.toFixed(4)}`;
   document.getElementById("gainReadout").textContent = `PID ${state.gain.toFixed(2)}x`;
+  document.getElementById("recordReadout").textContent = state.recording
+    ? `REC ${Math.floor((now - state.recordStartedAt) / 1000)}s`
+    : "REC OFF";
   document.getElementById("fpsReadout").textContent = `FPS ${state.measuredFps}`;
+}
+
+function exportPng() {
+  canvas.toBlob((blob) => {
+    if (!blob) return;
+    downloadBlob(blob, fileStem("png"));
+  }, "image/png");
+}
+
+function getRecorderMimeType() {
+  const candidates = ["video/webm;codecs=vp9", "video/webm;codecs=vp8", "video/webm"];
+  return candidates.find((type) => MediaRecorder.isTypeSupported(type)) || "";
+}
+
+function toggleRecording() {
+  if (state.recording) {
+    mediaRecorder?.stop();
+    return;
+  }
+
+  if (!canvas.captureStream || !window.MediaRecorder) {
+    alert("Recording is not supported in this browser.");
+    return;
+  }
+
+  recordedChunks = [];
+  const stream = canvas.captureStream(state.fps);
+  const mimeType = getRecorderMimeType();
+  mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType, videoBitsPerSecond: 8_000_000 } : undefined);
+  mediaRecorder.addEventListener("dataavailable", (event) => {
+    if (event.data.size > 0) recordedChunks.push(event.data);
+  });
+  mediaRecorder.addEventListener("stop", () => {
+    const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || "video/webm" });
+    downloadBlob(blob, fileStem("webm"));
+    state.recording = false;
+    document.getElementById("recordBtn").textContent = "REC";
+    document.getElementById("recordBtn").classList.remove("active");
+  });
+  mediaRecorder.start(1000);
+  state.recording = true;
+  state.recordStartedAt = performance.now();
+  document.getElementById("recordBtn").textContent = "Stop";
+  document.getElementById("recordBtn").classList.add("active");
+}
+
+async function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    await document.documentElement.requestFullscreen();
+  } else {
+    await document.exitFullscreen();
+  }
+}
+
+function toggleCleanMode() {
+  state.clean = !state.clean;
+  document.body.classList.toggle("clean", state.clean);
+  document.getElementById("cleanBtn").classList.toggle("active", state.clean);
+}
+
+function savePreset() {
+  const name = prompt("Preset name", `${state.mode} ${state.theme}`);
+  if (!name) return;
+  const presets = getSavedPresets();
+  presets.push(snapshotPreset(name));
+  setSavedPresets(presets);
+  refreshPresetSelect();
 }
 
 async function startMic() {
@@ -252,6 +488,20 @@ function bindControls() {
     document.body.style.background = THEMES[state.theme].bg;
   });
 
+  document.getElementById("exportPngBtn").addEventListener("click", exportPng);
+  document.getElementById("recordBtn").addEventListener("click", toggleRecording);
+  document.getElementById("fullscreenBtn").addEventListener("click", () => {
+    toggleFullscreen().catch(console.error);
+  });
+  document.getElementById("cleanBtn").addEventListener("click", toggleCleanMode);
+  document.getElementById("savePresetBtn").addEventListener("click", savePreset);
+  document.getElementById("presetSelect").addEventListener("input", (event) => {
+    if (!event.target.value) return;
+    const presets = [...getBuiltInPresets(), ...getSavedPresets()];
+    applyPreset(presets[Number(event.target.value)]);
+    event.target.value = "";
+  });
+
   const ranges = {
     targetRms: "targetRms",
     renderPoints: "renderPoints",
@@ -290,11 +540,14 @@ function bindControls() {
       trailHistory = [];
     }
     if (event.key === "h") document.getElementById("hudBtn").click();
+    if (event.key === "Escape" && state.clean) toggleCleanMode();
   });
 }
 
 resize();
 bindControls();
+refreshPresetSelect();
+syncControls();
 requestAnimationFrame(draw);
 window.addEventListener("resize", resize);
 console.info(`Rainbow Mic Scope ${VERSION}`);
