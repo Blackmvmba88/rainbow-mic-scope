@@ -93,3 +93,10 @@ python3 -m venv .venv
 ## Release
 
 See [docs/RELEASE_NOTES_v1.4.0.md](docs/RELEASE_NOTES_v1.4.0.md).
+
+## Product Planning
+
+- [Roadmap](ROADMAP.md)
+- [Product checklist](PRODUCT_CHECKLIST.md)
+- [Export plan](docs/EXPORT_PLAN.md)
+- [Preset system](docs/PRESET_SYSTEM.md)
