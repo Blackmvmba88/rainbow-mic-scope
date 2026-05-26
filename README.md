@@ -49,6 +49,14 @@ http://192.168.101.100:4173
 
 For details, see [docs/PHONE_ACCESS.md](docs/PHONE_ACCESS.md).
 
+Quick LAN QR:
+
+```bash
+npm run qr
+```
+
+Then open `QR` in the WebUI and scan from a phone on the same Wi-Fi.
+
 ## Run The Python Visualizer
 
 ```bash

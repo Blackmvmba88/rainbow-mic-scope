@@ -565,6 +565,20 @@ function openDoctor() {
   }
 }
 
+async function openQr() {
+  const dialog = document.getElementById("qrDialog");
+  try {
+    const response = await fetch("./phone-url.txt", { cache: "no-store" });
+    if (response.ok) {
+      document.getElementById("phoneUrl").textContent = (await response.text()).trim();
+    }
+  } catch {
+    // Keep the baked fallback URL visible.
+  }
+  document.getElementById("phoneQr").src = `./phone-qr.svg?t=${Date.now()}`;
+  dialog.showModal();
+}
+
 async function startMic() {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: {
@@ -607,6 +621,7 @@ function bindControls() {
   document.getElementById("exportPngBtn").addEventListener("click", exportPng);
   document.getElementById("recordBtn").addEventListener("click", toggleRecording);
   document.getElementById("doctorBtn").addEventListener("click", openDoctor);
+  document.getElementById("qrBtn").addEventListener("click", openQr);
   document.getElementById("rerunDoctorBtn").addEventListener("click", () => runDoctor().catch(console.error));
   document.getElementById("fullscreenBtn").addEventListener("click", () => {
     toggleFullscreen().catch(console.error);
@@ -659,6 +674,7 @@ function bindControls() {
     }
     if (event.key === "h") document.getElementById("hudBtn").click();
     if (event.key === "d") openDoctor();
+    if (event.key === "q") openQr();
     if (event.key === "Escape" && state.clean) toggleCleanMode();
   });
 }

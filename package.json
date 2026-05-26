@@ -9,6 +9,7 @@
   "scripts": {
     "validate:web": "node --check webui/app.js",
     "desktop:dev": "electron .",
+    "qr": "node tools/generate-phone-qr.mjs",
     "desktop:pack": "electron-builder --dir",
     "dist:mac": "electron-builder --mac dmg",
     "dist:win": "electron-builder --win nsis",
@@ -58,6 +59,7 @@
   },
   "devDependencies": {
     "electron": "^37.0.0",
-    "electron-builder": "^26.0.12"
+    "electron-builder": "^26.0.12",
+    "qrcode": "^1.5.4"
   }
 }

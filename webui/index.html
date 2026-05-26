@@ -84,6 +84,7 @@
         <button id="exportPngBtn" type="button">PNG</button>
         <button id="recordBtn" type="button">REC</button>
         <button id="doctorBtn" type="button">Doctor</button>
+        <button id="qrBtn" type="button">QR</button>
         <button id="savePresetBtn" type="button">Save</button>
         <select id="presetSelect" aria-label="Saved presets">
           <option value="">Preset</option>
@@ -112,6 +113,20 @@
         <footer class="doctor-actions">
           <button id="rerunDoctorBtn" type="button">Run Again</button>
         </footer>
+      </form>
+    </dialog>
+
+    <dialog id="qrDialog" class="qr-dialog">
+      <form method="dialog" class="qr-card">
+        <header class="doctor-head">
+          <div>
+            <h2>Phone QR</h2>
+            <p>Scan from a phone on the same Wi-Fi.</p>
+          </div>
+          <button type="submit" aria-label="Close QR">Close</button>
+        </header>
+        <img id="phoneQr" src="./phone-qr.svg" alt="QR code for phone access" />
+        <code id="phoneUrl">http://192.168.101.100:4173</code>
       </form>
     </dialog>
 

@@ -28,6 +28,16 @@ http://192.168.101.100:4173
 
 Important: some mobile browsers will show the page but block the microphone because this is HTTP, not HTTPS.
 
+## QR Shortcut
+
+Generate a QR code for the current LAN address:
+
+```bash
+npm run qr
+```
+
+The WebUI `QR` button opens the generated code and URL. If your Wi-Fi IP changes, rerun `npm run qr`.
+
 ## Local Non-Docker
 
 ```bash
